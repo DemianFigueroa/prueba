@@ -6,15 +6,24 @@ const updatePost = async (formData: FormData) => {
   'use server';
   const id = formData.get('id') as string;
   const name = formData.get('name') as string;
+
+  if (!id || !name) {
+    throw new Error('Missing required form fields.');
+  }
+
   await prisma.post.update({ where: { id }, data: { name } });
   revalidatePath('/');
   redirect('/');
 };
 
-type EditPageProps = { params: { postId: string } };
+const EditPage = async ({
+  params,
+}: {
+  params: Promise<{ postId: string }>;
+}) => {
+  const { postId } = await params;
+  const post = await prisma.post.findUnique({ where: { id: postId } });
 
-const EditPage = async ({ params }: EditPageProps) => {
-  const post = await prisma.post.findUnique({ where: { id: params.postId } });
   if (!post) return notFound();
 
   return (

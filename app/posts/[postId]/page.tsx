@@ -2,29 +2,27 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { prisma } from '@/src/lib/prisma';
 import { revalidatePath } from 'next/cache';
-import { Star } from 'lucide-react';  // :contentReference[oaicite:5]{index=5}
-
-type PostPageProps = { params: { postId: string } };
+import { Star } from 'lucide-react';
 
 const toggleFavorite = async (id: string) => {
-  'use server';                                        // :contentReference[oaicite:6]{index=6}
+  'use server';
   const post = await prisma.post.findUnique({ where: { id } });
   if (!post) return;
   await prisma.post.update({
     where: { id },
     data: { favorite: !post.favorite },
   });
-  revalidatePath(`/posts/${id}`);                       // :contentReference[oaicite:7]{index=7}
+  revalidatePath(`/posts/${id}`);
 };
 
-const PostPage = async ({ params }: PostPageProps) => {
-  const post = await prisma.post.findUnique({ where: { id: params.postId } });
+const PostPage = async (props: { params: Promise<{ postId: string }> }) => {
+  const { postId } = await props.params;
+  const post = await prisma.post.findUnique({ where: { id: postId } });
   if (!post) return notFound();
 
   return (
-    <div className="max-w-2xl mx-auto p-6">            {/* :contentReference[oaicite:8]{index=8} */}
+    <div className="max-w-2xl mx-auto p-6">
       <div className="bg-white shadow-sm rounded-lg p-6 flex items-center justify-between">
-        {/* Título y toggle */}
         <h2 className="text-2xl font-semibold text-gray-800 flex items-center gap-2">
           {post.name}
           <form action={toggleFavorite.bind(null, post.id)}>
